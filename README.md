@@ -1,8 +1,8 @@
 # PONY-EDN 
 
-pony-edn is a Pony implementation of the EDN (extensible data notation) format.
+Pony-edn is a Pony implementation of the EDN (extensible data notation) format.
 
-This library is heavily influenced by the [go-edn library](https://github.com/go-edn/edn).
+This library is heavily influenced by the [pony json package](https://github.com/ponylang/ponyc/blob/master/packages/json/json.pony) and the [go-edn library](https://github.com/go-edn/edn).
 
 ## Status
 

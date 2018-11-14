@@ -1,3 +1,4 @@
-build/*
+build
+.vscode
 /edn/test/integration/tmp/**
 !/edn/test/integration/tmp/.gitkeep
