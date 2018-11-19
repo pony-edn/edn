@@ -37,7 +37,7 @@ class iso _TestParseKeyword is UnitTest
     doc.parse("false")?
     h.assert_eq[Bool](false, doc.data as Bool)
 
-    doc.parse("null")?
+    doc.parse("nil")?
     h.assert_eq[None](None, doc.data as None)
 
     h.assert_error({() ? => EdnDoc.parse("tru e")? })
@@ -178,13 +178,13 @@ class iso _TestParseArray is UnitTest
     h.assert_eq[Bool](true, (doc.data as EdnArray).data(0)? as Bool)
     h.assert_eq[Bool](false, (doc.data as EdnArray).data(1)? as Bool)
 
-    doc.parse("[true , 13,null]")?
+    doc.parse("[true , 13,nil]")?
     h.assert_eq[USize](3, (doc.data as EdnArray).data.size())
     h.assert_eq[Bool](true, (doc.data as EdnArray).data(0)? as Bool)
     h.assert_eq[I64](13, (doc.data as EdnArray).data(1)? as I64)
     h.assert_eq[None](None, (doc.data as EdnArray).data(2)? as None)
 
-    doc.parse("[true, [52, null]]")?
+    doc.parse("[true, [52, nil]]")?
     h.assert_eq[USize](2, (doc.data as EdnArray).data.size())
     h.assert_eq[Bool](true, (doc.data as EdnArray).data(0)? as Bool)
     h.assert_eq[USize](2,
@@ -194,7 +194,6 @@ class iso _TestParseArray is UnitTest
     h.assert_eq[None](None,
       ((doc.data as EdnArray).data(1)? as EdnArray).data(1)? as None)
 
-    h.assert_error({() ? => EdnDoc.parse("[true true]")? })
     h.assert_error({() ? => EdnDoc.parse("[,]")? })
     h.assert_error({() ? => EdnDoc.parse("[true,]")? })
     h.assert_error({() ? => EdnDoc.parse("[,true]")? })
@@ -221,7 +220,7 @@ class iso _TestParseObject is UnitTest
     h.assert_eq[USize](1, (doc.data as EdnObject).data.size())
     h.assert_eq[Bool](true, (doc.data as EdnObject).data("foo")? as Bool)
 
-    doc.parse("""{ :foo true }""")?
+    doc.parse("""{ :foo "true" }""")?
     h.assert_eq[USize](1, (doc.data as EdnObject).data.size())
     h.assert_eq[String]("true", (doc.data as EdnObject).data("foo")? as String)
 
@@ -251,7 +250,7 @@ class iso _TestParseObject is UnitTest
     h.assert_eq[None](None,
       ((doc.data as EdnObject).data("b")? as EdnObject).data("d")? as None)
 
-    h.assert_error({() ? => EdnDoc.parse("{,}")? })
+    h.assert_error({() ? => EdnDoc.parse("""{,}""")? })
     h.assert_error({() ? => EdnDoc.parse("""{:a true,}""")? })
     h.assert_error({() ? => EdnDoc.parse("""{,:a true}""")? })
     h.assert_error({() ? => EdnDoc.parse("""{""")? })
@@ -286,6 +285,7 @@ class iso _TestParseRFC1 is UnitTest
       """
 
     let doc: EdnDoc = EdnDoc
+    
     doc.parse(src)?
 
     let obj1 = doc.data as EdnObject
@@ -327,7 +327,7 @@ class iso _TestParseRFC2 is UnitTest
       """
       [
         {
-          :precision "zip",
+          :precision "zip"
           :latitude  37.7668
           :longitude -122.3959
           :address   ""
@@ -350,6 +350,7 @@ class iso _TestParseRFC2 is UnitTest
       """
 
     let doc: EdnDoc = EdnDoc
+
     doc.parse(src)?
 
     let array = doc.data as EdnArray
@@ -396,7 +397,7 @@ class iso _TestPrintKeyword is UnitTest
     h.assert_eq[String]("false", doc.string())
 
     doc.data = None
-    h.assert_eq[String]("null", doc.string())
+    h.assert_eq[String]("nil", doc.string())
 
 class iso _TestPrintNumber is UnitTest
   """
@@ -484,7 +485,7 @@ class iso _TestPrintArray is UnitTest
     array.data.push(true)
     array.data.push(I64(13))
     array.data.push(None)
-    h.assert_eq[String]("[\n  true\n  13\n  null\n]", doc.string("  ", true))
+    h.assert_eq[String]("[\n  true\n  13\n  nil\n]", doc.string("  ", true))
 
     array.data.clear()
     array.data.push(true)
@@ -492,7 +493,7 @@ class iso _TestPrintArray is UnitTest
     nested.data.push(I64(52))
     nested.data.push(None)
     array.data.push(nested)
-    h.assert_eq[String]("[\n  true\n  [\n    52\n    null\n  ]\n]",
+    h.assert_eq[String]("[\n  true\n  [\n    52\n    nil\n  ]\n]",
       doc.string("  ", true))
 
 class iso _TestNoPrettyPrintArray is UnitTest
@@ -515,13 +516,13 @@ class iso _TestNoPrettyPrintArray is UnitTest
     array.data.clear()
     array.data.push(true)
     array.data.push(false)
-    h.assert_eq[String]("[true,false]", doc.string())
+    h.assert_eq[String]("[true false]", doc.string())
 
     array.data.clear()
     array.data.push(true)
     array.data.push(I64(13))
     array.data.push(None)
-    h.assert_eq[String]("[true,13,null]", doc.string())
+    h.assert_eq[String]("[true 13 nil]", doc.string())
 
     array.data.clear()
     array.data.push(true)
@@ -529,7 +530,7 @@ class iso _TestNoPrettyPrintArray is UnitTest
     nested.data.push(I64(52))
     nested.data.push(None)
     array.data.push(nested)
-    h.assert_eq[String]("[true,[52,null]]",
+    h.assert_eq[String]("[true [52 nil]]",
       doc.string())
 
 class iso _TestPrintObject is UnitTest
@@ -581,7 +582,7 @@ class iso _TestNoPrettyPrintObject is UnitTest
     obj.data("b") = I64(3)
     let s = doc.string()
     h.assert_true((s == "{:a true :b 3}") or
-      (s == "{:b 3,:a true}"))
+      (s == "{:b 3 :a true}"))
 
     // We don't test with more fields in the object because we don't know what
     // order they will be printed in
@@ -613,7 +614,7 @@ class iso _TestParsePrint is UnitTest
         }
         47
         {
-          :foo: {
+          :foo {
             :bar [
               {
                 :aardvark nil
